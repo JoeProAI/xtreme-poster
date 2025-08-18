@@ -4,9 +4,13 @@ import path from 'path';
 import fs from 'fs/promises';
 import { formatPost, formatThread, formatLongForm } from './post-processing';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client only if API key is available
+let openai: OpenAI | null = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // Define a type for our style corpus
 type StyleCorpus = {
@@ -26,6 +30,13 @@ async function getStyleCorpus(): Promise<StyleCorpus> {
 }
 
 export async function POST(req: Request) {
+  // Check if OpenAI client is available
+  if (!openai) {
+    return NextResponse.json({ 
+      error: 'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.' 
+    }, { status: 500 });
+  }
+
   const { topic, style, outputType } = await req.json();
   const styleCorpus = await getStyleCorpus();
 
