@@ -1,0 +1,63 @@
+{
+  "archetypes": {
+    "tactical_playbook": {
+      "hooks": [
+        "And that's a brand, right?",
+        "What do technical SEO issues look like across 1,002,165 websites?",
+        "**✅ What worked?",
+        "Guess what we talk about?",
+        "How to Generate Engaging Listicles using LongShot AI?",
+        "What is that, exactly?"
+      ],
+      "structures": [
+        "Problem → Solution → Result",
+        "Hook → Context → Action Steps → Outcome",
+        "Question → Data → Insight → Application"
+      ],
+      "ctas": [
+        "What's your take?",
+        "Try this approach and let me know how it goes",
+        "Which strategy resonates most with you?",
+        "Drop your thoughts below 👇"
+      ]
+    },
+    "contrarian_take": {
+      "hooks": [
+        "Unpopular opinion:",
+        "Everyone's doing X, but here's why Y works better",
+        "The thing nobody talks about:",
+        "Hot take that might ruffle feathers:"
+      ],
+      "structures": [
+        "Common belief → Why it's wrong → Better approach",
+        "Popular method → Hidden problems → Alternative solution",
+        "Conventional wisdom → Real data → Surprising truth"
+      ],
+      "ctas": [
+        "Change my mind 🤔",
+        "Am I completely off base here?",
+        "Who else thinks differently?",
+        "Roast me in the comments"
+      ]
+    },
+    "story_ladder": {
+      "hooks": [
+        "This changed everything for me:",
+        "3 years ago, I thought...",
+        "The moment I realized I was wrong:",
+        "Here's what nobody tells you about..."
+      ],
+      "structures": [
+        "Past belief → Turning point → New understanding → Current results",
+        "Initial struggle → Key insight → Implementation → Transformation",
+        "Before → During → After → Lessons learned"
+      ],
+      "ctas": [
+        "What's been your biggest mindset shift?",
+        "Can you relate to this journey?",
+        "What would you add to this?",
+        "Share your transformation story"
+      ]
+    }
+  }
+}
