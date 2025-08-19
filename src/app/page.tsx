@@ -103,7 +103,7 @@ export default function Home() {
                 checked={includeImage}
                 onChange={(e) => setIncludeImage(e.target.checked)}
               />
-              <span className="ml-2 text-gray-400">Generate viral image (DALL-E 3)</span>
+              <span className="ml-2 text-gray-400">Generate viral image (GPT Image)</span>
             </label>
           </div>
         </div>

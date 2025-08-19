@@ -86,22 +86,31 @@ export async function POST(req: Request) {
       let content = completion.choices[0].message.content || '';
       let imageUrl = null;
 
-      // Generate image if requested
+      // Generate image if requested using GPT Image
       if (includeImage) {
         try {
-          const imageResponse = await openai.images.generate({
-            model: "dall-e-3",
-            prompt: `Create a viral, eye-catching image for X/Twitter about: ${topic}. Style: ${style}. Make it engaging and shareable.`,
-            n: 1,
-            size: "1024x1024",
-            response_format: "b64_json"
+          const imageResponse = await openai.responses.create({
+            model: "gpt-4o",
+            input: `Create a viral, eye-catching image for X/Twitter about: ${topic}. Style: ${style}. Make it engaging and shareable with high visual impact.`,
+            tools: [
+              {
+                type: "image_generation",
+                quality: "high",
+                size: "1024x1024",
+                background: "auto"
+              }
+            ]
           });
-          
-          if (imageResponse.data && imageResponse.data[0]?.b64_json) {
-            imageUrl = `data:image/png;base64,${imageResponse.data[0].b64_json}`;
+
+          const imageData = imageResponse.output?.find(
+            (output: any) => output.type === "image_generation_call"
+          ) as any;
+
+          if (imageData?.result) {
+            imageUrl = `data:image/png;base64,${imageData.result}`;
           }
         } catch (imageError) {
-          console.error('Image generation error:', imageError);
+          console.error('GPT Image generation error:', imageError);
           // Continue without image if generation fails
         }
       }
