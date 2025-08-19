@@ -88,17 +88,20 @@ export async function POST(req: Request) {
       - CTA: ${archetype.ctas.join(', ')}
       
       Make it EXTREMELY timely and on-point:
-      - Reference current trending topics when relevant
-      - Use trending hashtags naturally
-      - Connect to breaking news or viral moments
-      - Include real-time cultural references
-      - Make it feel like it was written TODAY
-      - Use emotional triggers and controversy
-      - Include numbers/statistics when possible
-      - Make it copy-paste ready for X/Twitter
+      • Reference current trending topics when relevant
+      • Use trending hashtags naturally
+      • Connect to breaking news or viral moments
+      • Include real-time cultural references
+      • Make it feel like it was written TODAY
+      • Use emotional triggers and controversy
+      • Include numbers/statistics when possible
+      • Make it copy-paste ready for X/Twitter
+      • Use MINIMAL emoticons (max 1-2 per post)
+      • NEVER use dash characters (-)
+      • Keep formatting clean and professional
       
       The content should feel urgent, timely, and perfectly aligned with what's happening RIGHT NOW.
-      Format for easy copying to X/Twitter.
+      Format for easy copying to X/Twitter with clean, professional appearance.
     `;
 
     try {
@@ -113,9 +116,33 @@ export async function POST(req: Request) {
       // Generate image if requested using GPT Image
       if (includeImage) {
         try {
+          // Create detailed, unique image prompt
+          const imagePrompt = `Create a stunning, highly detailed visual artwork about "${topic}" in ${style} style. 
+
+          Visual Elements:
+          • Ultra-realistic 8K quality with cinematic lighting
+          • Dynamic composition with rule of thirds
+          • Rich color palette with complementary contrasts
+          • Professional photography aesthetic with shallow depth of field
+          • Incorporate trending visual metaphors and symbols
+          • Modern, sleek design with premium feel
+          • Subtle texture overlays and atmospheric effects
+          • Perfect for social media engagement
+
+          Technical Specifications:
+          • Photorealistic rendering with HDR lighting
+          • Sharp focus on main subject with artistic bokeh background
+          • Vibrant but sophisticated color grading
+          • Clean, uncluttered composition
+          • High contrast and visual impact
+          • Professional studio lighting setup
+          • Trending aesthetic that stops scrolling
+
+          Make it visually striking, unique, and instantly shareable on X/Twitter.`;
+
           const imageResponse = await openai.responses.create({
             model: "gpt-4o",
-            input: `Create a viral, eye-catching image for X/Twitter about: ${topic}. Style: ${style}. Make it engaging and shareable with high visual impact.`,
+            input: imagePrompt,
             tools: [
               {
                 type: "image_generation",
