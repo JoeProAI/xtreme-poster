@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [topic, setTopic] = useState('');
@@ -11,6 +11,24 @@ export default function Home() {
   const [generatedImage, setGeneratedImage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState('');
+  const [trendingTopics, setTrendingTopics] = useState<string[]>([]);
+  const [showTrending, setShowTrending] = useState(false);
+
+  // Fetch trending topics on component mount
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const response = await fetch('/api/trending');
+        if (response.ok) {
+          const data = await response.json();
+          setTrendingTopics(data.data.topics.slice(0, 8));
+        }
+      } catch (error) {
+        console.error('Failed to fetch trending topics:', error);
+      }
+    };
+    fetchTrending();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +39,9 @@ export default function Home() {
     try {
       setLoadingStatus('🧠 Analyzing your topic...');
       await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setLoadingStatus('🔥 Analyzing trending topics...');
+      await new Promise(resolve => setTimeout(resolve, 600));
       
       setLoadingStatus('✍️ Crafting viral content...');
       
@@ -78,6 +99,31 @@ export default function Home() {
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g., The future of AI in science"
             />
+            <div className="flex items-center justify-between mb-2">
+              <button
+                type="button"
+                onClick={() => setShowTrending(!showTrending)}
+                className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center"
+              >
+                🔥 Trending Now {showTrending ? '▼' : '▶'}
+              </button>
+            </div>
+            {showTrending && (
+              <div className="bg-gray-800 border border-gray-700 rounded p-3 mb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {trendingTopics.map((topic, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setTopic(topic)}
+                      className="text-left text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-3 py-2 rounded transition-colors"
+                    >
+                      {topic}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap -mx-3 mb-6">

@@ -56,24 +56,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid style selected' }, { status: 400 });
     }
 
-    // Enhanced prompt for viral X/Twitter content
+    // Get trending data for timely content
+    let trendingContext = '';
+    try {
+      const trendingResponse = await fetch(`${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/trending`);
+      if (trendingResponse.ok) {
+        const trendingData = await trendingResponse.json();
+        const relevantHashtags = trendingData.data.hashtags.slice(0, 5).join(', ');
+        const relevantTopics = trendingData.data.topics.slice(0, 3).join(', ');
+        trendingContext = `
+        TRENDING NOW (use these for maximum relevance):
+        - Hot hashtags: ${relevantHashtags}
+        - Trending topics: ${relevantTopics}
+        - Current events context: ${trendingData.data.currentEvents.slice(0, 2).join(', ')}
+        `;
+      }
+    } catch (error) {
+      console.log('Could not fetch trending data, proceeding without it');
+    }
+
+    // Enhanced prompt for viral X/Twitter content with trending context
     const prompt = `
       Generate a viral ${outputType} about "${topic}" optimized for maximum X/Twitter impressions.
       Style: "${style}"
+      
+      ${trendingContext}
       
       Use viral techniques:
       - Hook: ${archetype.hooks.join(', ')}
       - Structure: ${archetype.structures.join(', ')}
       - CTA: ${archetype.ctas.join(', ')}
       
-      Make it:
-      - Highly engaging and shareable
-      - Include trending hashtags
-      - Use emotional triggers
-      - Add controversy or strong opinions when appropriate
+      Make it EXTREMELY timely and on-point:
+      - Reference current trending topics when relevant
+      - Use trending hashtags naturally
+      - Connect to breaking news or viral moments
+      - Include real-time cultural references
+      - Make it feel like it was written TODAY
+      - Use emotional triggers and controversy
       - Include numbers/statistics when possible
       - Make it copy-paste ready for X/Twitter
       
+      The content should feel urgent, timely, and perfectly aligned with what's happening RIGHT NOW.
       Format for easy copying to X/Twitter.
     `;
 
