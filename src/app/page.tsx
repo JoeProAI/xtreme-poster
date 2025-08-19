@@ -125,6 +125,7 @@ export default function Home() {
           {generatedImage && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Generated Image</h3>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={generatedImage} 
                 alt="Generated viral image" 

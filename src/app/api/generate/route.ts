@@ -103,11 +103,11 @@ export async function POST(req: Request) {
           });
 
           const imageData = imageResponse.output?.find(
-            (output: any) => output.type === "image_generation_call"
-          ) as any;
+            (output) => output.type === "image_generation_call"
+          );
 
-          if (imageData?.result) {
-            imageUrl = `data:image/png;base64,${imageData.result}`;
+          if (imageData && 'result' in imageData) {
+            imageUrl = `data:image/png;base64,${(imageData as any).result}`;
           }
         } catch (imageError) {
           console.error('GPT Image generation error:', imageError);
