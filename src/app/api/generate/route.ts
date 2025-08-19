@@ -31,11 +31,9 @@ async function getStyleCorpus(): Promise<StyleCorpus> {
 
 export async function POST(req: Request) {
   try {
-    // Debug: Log environment variable status
     console.log('OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
     console.log('OpenAI client initialized:', !!openai);
     
-    // Check if OpenAI client is available
     if (!openai) {
       return NextResponse.json({ 
         error: 'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.',
@@ -46,27 +44,38 @@ export async function POST(req: Request) {
       }, { status: 500 });
     }
 
-    const { topic, style, outputType } = await req.json();
-    console.log('Request data:', { topic, style, outputType });
+    const { topic, style, outputType, includeImage } = await req.json();
+    console.log('Request data:', { topic, style, outputType, includeImage });
     
     const styleCorpus = await getStyleCorpus();
     console.log('Style corpus loaded successfully');
 
-  const archetype = styleCorpus.archetypes[style];
+    const archetype = styleCorpus.archetypes[style];
 
-  if (!archetype) {
-    return NextResponse.json({ error: 'Invalid style selected' }, { status: 400 });
-  }
+    if (!archetype) {
+      return NextResponse.json({ error: 'Invalid style selected' }, { status: 400 });
+    }
 
-  // Construct a more detailed prompt
-  const prompt = `
-    Generate a ${outputType} about "${topic}".
-    The style should be "${style}".
-    Use one of these hooks: ${archetype.hooks.join(', ')}
-    Follow this structure: ${archetype.structures.join(', ')}
-    Include a call to action like one of these: ${archetype.ctas.join(', ')}
-    Ensure the output is natural and avoids AI-like grammar and phrasing.
-  `;
+    // Enhanced prompt for viral X/Twitter content
+    const prompt = `
+      Generate a viral ${outputType} about "${topic}" optimized for maximum X/Twitter impressions.
+      Style: "${style}"
+      
+      Use viral techniques:
+      - Hook: ${archetype.hooks.join(', ')}
+      - Structure: ${archetype.structures.join(', ')}
+      - CTA: ${archetype.ctas.join(', ')}
+      
+      Make it:
+      - Highly engaging and shareable
+      - Include trending hashtags
+      - Use emotional triggers
+      - Add controversy or strong opinions when appropriate
+      - Include numbers/statistics when possible
+      - Make it copy-paste ready for X/Twitter
+      
+      Format for easy copying to X/Twitter.
+    `;
 
     try {
       const completion = await openai.chat.completions.create({
@@ -75,6 +84,27 @@ export async function POST(req: Request) {
       });
 
       let content = completion.choices[0].message.content || '';
+      let imageUrl = null;
+
+      // Generate image if requested
+      if (includeImage) {
+        try {
+          const imageResponse = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: `Create a viral, eye-catching image for X/Twitter about: ${topic}. Style: ${style}. Make it engaging and shareable.`,
+            n: 1,
+            size: "1024x1024",
+            response_format: "b64_json"
+          });
+          
+          if (imageResponse.data && imageResponse.data[0]?.b64_json) {
+            imageUrl = `data:image/png;base64,${imageResponse.data[0].b64_json}`;
+          }
+        } catch (imageError) {
+          console.error('Image generation error:', imageError);
+          // Continue without image if generation fails
+        }
+      }
 
       if (outputType === 'post') {
         content = formatPost(content);
@@ -84,7 +114,11 @@ export async function POST(req: Request) {
         content = formatLongForm(content);
       }
 
-      return NextResponse.json({ content });
+      return NextResponse.json({ 
+        content,
+        image: imageUrl,
+        copyReady: true
+      });
     } catch (error) {
       console.error('OpenAI API error:', error);
       return NextResponse.json({ 

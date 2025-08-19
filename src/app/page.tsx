@@ -6,7 +6,9 @@ export default function Home() {
   const [topic, setTopic] = useState('');
   const [style, setStyle] = useState('tactical_playbook');
   const [outputType, setOutputType] = useState('post');
+  const [includeImage, setIncludeImage] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
+  const [generatedImage, setGeneratedImage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,11 +18,14 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ topic, style, outputType }),
+        body: JSON.stringify({ topic, style, outputType, includeImage }),
       });
       const data = await response.json();
       if (data.content) {
         setGeneratedContent(data.content);
+      }
+      if (data.image) {
+        setGeneratedImage(data.image);
       }
     } catch (error) {
       console.error('Failed to generate content:', error);
@@ -89,44 +94,71 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className="flex flex-wrap -mx-3 mb-6">
+          <div className="w-full px-3">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                className="form-checkbox h-5 w-5 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500"
+                checked={includeImage}
+                onChange={(e) => setIncludeImage(e.target.checked)}
+              />
+              <span className="ml-2 text-gray-400">Generate viral image (DALL-E 3)</span>
+            </label>
+          </div>
+        </div>
         <div className="flex flex-wrap -mx-3 mb-2">
           <div className="w-full px-3">
             <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
               type="submit"
             >
-              Generate Content
+              🚀 Generate Viral Content
             </button>
           </div>
         </div>
       </form>
       {generatedContent && (
-        <div className="w-full max-w-lg mt-8">
-          <h2 className="text-2xl font-bold mb-4">Generated Content</h2>
-          <div className="bg-gray-800 text-white border border-gray-700 rounded p-4">
-            <p>{generatedContent}</p>
+        <div className="w-full max-w-2xl mt-8">
+          <h2 className="text-2xl font-bold mb-4">🔥 Viral Content Ready</h2>
+          
+          {generatedImage && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Generated Image</h3>
+              <img 
+                src={generatedImage} 
+                alt="Generated viral image" 
+                className="w-full rounded-lg border border-gray-700"
+              />
+            </div>
+          )}
+          
+          <div className="bg-gray-800 text-white border border-gray-700 rounded p-4 mb-4">
+            <pre className="whitespace-pre-wrap font-sans">{generatedContent}</pre>
           </div>
-          <div className="flex justify-end mt-4">
+          
+          <div className="flex flex-wrap gap-2 justify-center">
             <button
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
               onClick={() => navigator.clipboard.writeText(generatedContent)}
             >
-              Copy
+              📋 Copy to Clipboard
             </button>
-            <a
-              href={`data:text/markdown;charset=utf-8,${encodeURIComponent(generatedContent)}`}
-              download="generated_content.md"
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2"
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(generatedContent)}`, '_blank')}
             >
-              Markdown
-            </a>
-            <a
-              href={`data:text/plain;charset=utf-8,${encodeURIComponent(generatedContent)}`}
-              download="generated_content.txt"
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-            >
-              TXT
-            </a>
+              🐦 Post to X
+            </button>
+            {generatedImage && (
+              <a
+                href={generatedImage}
+                download="viral-image.png"
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+              >
+                🖼️ Download Image
+              </a>
+            )}
           </div>
         </div>
       )}
