@@ -9,10 +9,21 @@ export default function Home() {
   const [includeImage, setIncludeImage] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
   const [generatedImage, setGeneratedImage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setGeneratedContent('');
+    setGeneratedImage('');
+    
     try {
+      setLoadingStatus('🧠 Analyzing your topic...');
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setLoadingStatus('✍️ Crafting viral content...');
+      
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -20,16 +31,33 @@ export default function Home() {
         },
         body: JSON.stringify({ topic, style, outputType, includeImage }),
       });
+      
+      if (includeImage) {
+        setLoadingStatus('🎨 Generating viral image...');
+      }
+      
       const data = await response.json();
+      
+      setLoadingStatus('🚀 Finalizing your viral content...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       if (data.content) {
         setGeneratedContent(data.content);
       }
       if (data.image) {
         setGeneratedImage(data.image);
       }
+      
+      setLoadingStatus('✅ Ready to go viral!');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
     } catch (error) {
       console.error('Failed to generate content:', error);
       setGeneratedContent('Failed to generate content. Please try again.');
+      setLoadingStatus('❌ Generation failed');
+    } finally {
+      setIsLoading(false);
+      setLoadingStatus('');
     }
   };
 
@@ -110,13 +138,31 @@ export default function Home() {
         <div className="flex flex-wrap -mx-3 mb-2">
           <div className="w-full px-3">
             <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full disabled:opacity-50 disabled:cursor-not-allowed"
               type="submit"
+              disabled={isLoading}
             >
-              🚀 Generate Viral Content
+              {isLoading ? '⏳ Generating...' : '🚀 Generate Viral Content'}
             </button>
           </div>
         </div>
+        
+        {/* Status Bar */}
+        {isLoading && (
+          <div className="w-full max-w-lg mt-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <span className="text-gray-300 font-medium">{loadingStatus}</span>
+              </div>
+              <div className="mt-3">
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full animate-pulse" style={{width: '100%'}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </form>
       {generatedContent && (
         <div className="w-full max-w-2xl mt-8">
