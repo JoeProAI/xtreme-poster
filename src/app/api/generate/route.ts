@@ -30,15 +30,27 @@ async function getStyleCorpus(): Promise<StyleCorpus> {
 }
 
 export async function POST(req: Request) {
-  // Check if OpenAI client is available
-  if (!openai) {
-    return NextResponse.json({ 
-      error: 'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.' 
-    }, { status: 500 });
-  }
+  try {
+    // Debug: Log environment variable status
+    console.log('OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+    console.log('OpenAI client initialized:', !!openai);
+    
+    // Check if OpenAI client is available
+    if (!openai) {
+      return NextResponse.json({ 
+        error: 'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.',
+        debug: {
+          hasApiKey: !!process.env.OPENAI_API_KEY,
+          clientInitialized: !!openai
+        }
+      }, { status: 500 });
+    }
 
-  const { topic, style, outputType } = await req.json();
-  const styleCorpus = await getStyleCorpus();
+    const { topic, style, outputType } = await req.json();
+    console.log('Request data:', { topic, style, outputType });
+    
+    const styleCorpus = await getStyleCorpus();
+    console.log('Style corpus loaded successfully');
 
   const archetype = styleCorpus.archetypes[style];
 
@@ -56,25 +68,35 @@ export async function POST(req: Request) {
     Ensure the output is natural and avoids AI-like grammar and phrasing.
   `;
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [{ role: "system", content: prompt }],
-    });
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [{ role: "system", content: prompt }],
+      });
 
-    let content = completion.choices[0].message.content || '';
+      let content = completion.choices[0].message.content || '';
 
-    if (outputType === 'post') {
-      content = formatPost(content);
-    } else if (outputType === 'thread') {
-      content = formatThread(content);
-    } else {
-      content = formatLongForm(content);
+      if (outputType === 'post') {
+        content = formatPost(content);
+      } else if (outputType === 'thread') {
+        content = formatThread(content);
+      } else {
+        content = formatLongForm(content);
+      }
+
+      return NextResponse.json({ content });
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      return NextResponse.json({ 
+        error: 'Failed to generate content',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 });
     }
-
-    return NextResponse.json({ content });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Failed to generate content' }, { status: 500 });
+    console.error('General error:', error);
+    return NextResponse.json({ 
+      error: 'Server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
