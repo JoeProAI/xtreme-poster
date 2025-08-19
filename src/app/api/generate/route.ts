@@ -107,6 +107,7 @@ export async function POST(req: Request) {
           );
 
           if (imageData && 'result' in imageData) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             imageUrl = `data:image/png;base64,${(imageData as any).result}`;
           }
         } catch (imageError) {
