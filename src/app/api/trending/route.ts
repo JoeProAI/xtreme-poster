@@ -41,30 +41,47 @@ const getTrendingTopics = async () => {
 const fetchLiveTrendingData = async () => {
   const promises = [];
   
+  console.log('Checking environment variables...');
+  console.log('NEWS_API_KEY exists:', !!process.env.NEWS_API_KEY);
+  
   // Fetch from News API for current events
   if (process.env.NEWS_API_KEY) {
+    console.log('Adding News API to promises');
     promises.push(fetchNewsApiTrends());
   }
   
   // Fetch from Reddit API for trending topics
+  console.log('Adding Reddit API to promises');
   promises.push(fetchRedditTrends());
   
   // Fetch from Google Trends (free tier)
+  console.log('Adding Google Trends to promises');
   promises.push(fetchGoogleTrends());
   
+  console.log(`Total promises to execute: ${promises.length}`);
   const results = await Promise.allSettled(promises);
+  console.log('Promise results:', results.map(r => ({ status: r.status, hasValue: r.status === 'fulfilled' && !!r.value })));
   
   // Combine all successful results
   const combinedHashtags: string[] = [];
   const combinedTopics: string[] = [];
   const combinedEvents: string[] = [];
   
-  results.forEach((result) => {
+  results.forEach((result, index) => {
     if (result.status === 'fulfilled' && result.value) {
+      console.log(`Result ${index} successful:`, result.value);
       combinedHashtags.push(...(result.value.hashtags || []));
       combinedTopics.push(...(result.value.topics || []));
       combinedEvents.push(...(result.value.currentEvents || []));
+    } else if (result.status === 'rejected') {
+      console.log(`Result ${index} failed:`, result.reason);
     }
+  });
+  
+  console.log('Combined results:', { 
+    hashtags: combinedHashtags.length, 
+    topics: combinedTopics.length, 
+    events: combinedEvents.length 
   });
   
   return {
@@ -220,7 +237,9 @@ const getFallbackTrendingData = () => {
 
 export async function GET() {
   try {
+    console.log('Trending API called');
     const trendingData = await getTrendingTopics();
+    console.log('Trending data fetched:', JSON.stringify(trendingData, null, 2));
     
     return NextResponse.json({
       success: true,
@@ -229,7 +248,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching trending data:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch trending data' },
+      { error: 'Failed to fetch trending data', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
