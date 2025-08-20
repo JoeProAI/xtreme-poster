@@ -176,11 +176,11 @@ Create an image that commands respect, builds authority, and compels people to t
             new Promise((_, reject) => 
               setTimeout(() => reject(new Error('Image generation timeout')), 15000)
             )
-          ]) as any;
+          ]) as { output?: Array<{ type: string; result?: string }> };
 
           clearTimeout(imageTimeoutId);
 
-          const imageData = imageResponse.output?.find((output: any) => output.type === "image_generation_call");
+          const imageData = imageResponse.output?.find((output: { type: string }) => output.type === "image_generation_call");
           if (imageData && 'result' in imageData) {
             imageUrl = `data:image/png;base64,${imageData.result}`;
             console.log('Image generated successfully');
