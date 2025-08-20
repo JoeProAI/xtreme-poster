@@ -56,10 +56,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid style selected' }, { status: 400 });
     }
 
-    // Get trending data for timely content
+    // Get trending data for timely content with timeout
     let trendingContext = '';
     try {
-      const trendingResponse = await fetch(`${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/trending`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const trendingResponse = await fetch(`${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/trending`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (trendingResponse.ok) {
         const trendingData = await trendingResponse.json();
         const relevantHashtags = trendingData.data.hashtags.slice(0, 5).join(', ');
@@ -116,18 +124,22 @@ For LONG-FORM: Develop authoritative insights with specific steps people can tak
 Write with the authority of someone who has answers, the clarity of someone who cuts through confusion, and the impact of someone who moves people to action. Be direct, be decisive, be unforgettable.`;
 
     try {
+      console.log('Starting OpenAI completion...');
       const completion = await openai.chat.completions.create({
         model: "gpt-4",
         messages: [{ role: "system", content: prompt }],
+        max_tokens: 1000,
+        temperature: 0.7
       });
 
       let content = completion.choices[0].message.content || '';
       let imageUrl = null;
+      console.log('Content generated successfully');
 
-      // Generate image if requested using GPT Image
+      // Generate image if requested using GPT Image (with timeout)
       if (includeImage) {
         try {
-          // Generate powerful image prompt that commands attention
+          console.log('Starting image generation...');
           const imagePrompt = `Create a commanding visual that amplifies the impact of "${topic}". 
 
 Visual directives:
@@ -144,22 +156,34 @@ Visual directives:
 
 Create an image that commands respect, builds authority, and compels people to take action on the content.`;
 
-          const imageResponse = await openai.responses.create({
-            model: "gpt-4o",
-            input: imagePrompt,
-            tools: [
-              {
-                type: "image_generation",
-                quality: "high",
-                size: "1024x1024",
-                background: "auto"
-              }
-            ]
-          });
+          // Add timeout for image generation
+          const imageController = new AbortController();
+          const imageTimeoutId = setTimeout(() => imageController.abort(), 15000); // 15 second timeout
 
-          const imageData = imageResponse.output?.find(output => output.type === "image_generation_call");
+          const imageResponse = await Promise.race([
+            openai.responses.create({
+              model: "gpt-4o",
+              input: imagePrompt,
+              tools: [
+                {
+                  type: "image_generation",
+                  quality: "high",
+                  size: "1024x1024",
+                  background: "auto"
+                }
+              ]
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Image generation timeout')), 15000)
+            )
+          ]) as any;
+
+          clearTimeout(imageTimeoutId);
+
+          const imageData = imageResponse.output?.find((output: any) => output.type === "image_generation_call");
           if (imageData && 'result' in imageData) {
             imageUrl = `data:image/png;base64,${imageData.result}`;
+            console.log('Image generated successfully');
           }
         } catch (imageError) {
           console.error('GPT Image generation error:', imageError);
@@ -184,14 +208,14 @@ Create an image that commands respect, builds authority, and compels people to t
       console.error('OpenAI API error:', error);
       return NextResponse.json({ 
         error: 'Failed to generate content',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Content generation timeout or API error'
       }, { status: 500 });
     }
   } catch (error) {
     console.error('General error:', error);
     return NextResponse.json({ 
       error: 'Server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Request processing failed'
     }, { status: 500 });
   }
 }
