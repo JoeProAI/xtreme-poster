@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server';
 
+interface TrendingData {
+  hashtags: string[];
+  topics: string[];
+  currentEvents: string[];
+  lastUpdated: string;
+  timestamp: string;
+  source: string;
+}
+
 // Cache for trending data to avoid excessive API calls
-let trendingCache: any = null;
+let trendingCache: TrendingData | null = null;
 let lastFetch = 0;
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
@@ -46,9 +55,9 @@ const fetchLiveTrendingData = async () => {
   const results = await Promise.allSettled(promises);
   
   // Combine all successful results
-  let combinedHashtags: string[] = [];
-  let combinedTopics: string[] = [];
-  let combinedEvents: string[] = [];
+  const combinedHashtags: string[] = [];
+  const combinedTopics: string[] = [];
+  const combinedEvents: string[] = [];
   
   results.forEach((result) => {
     if (result.status === 'fulfilled' && result.value) {
@@ -78,13 +87,13 @@ const fetchNewsApiTrends = async () => {
   const data = await response.json();
   
   return {
-    topics: data.articles?.slice(0, 10).map((article: any) => 
+    topics: data.articles?.slice(0, 10).map((article: { title: string }) => 
       article.title.split(' - ')[0].substring(0, 60)
     ) || [],
-    currentEvents: data.articles?.slice(0, 5).map((article: any) => 
+    currentEvents: data.articles?.slice(0, 5).map((article: { description?: string }) => 
       article.description?.substring(0, 100)
     ).filter(Boolean) || [],
-    hashtags: extractHashtagsFromText(data.articles?.map((a: any) => a.title).join(' ') || '')
+    hashtags: extractHashtagsFromText(data.articles?.map((a: { title: string }) => a.title).join(' ') || '')
   };
 };
 
@@ -98,11 +107,11 @@ const fetchRedditTrends = async () => {
   const posts = data.data?.children || [];
   
   return {
-    topics: posts.slice(0, 10).map((post: any) => 
+    topics: posts.slice(0, 10).map((post: { data: { title: string } }) => 
       post.data.title.substring(0, 60)
     ),
-    hashtags: extractHashtagsFromText(posts.map((p: any) => p.data.title).join(' ')),
-    currentEvents: posts.slice(0, 5).map((post: any) => 
+    hashtags: extractHashtagsFromText(posts.map((p: { data: { title: string } }) => p.data.title).join(' ')),
+    currentEvents: posts.slice(0, 5).map((post: { data: { selftext?: string } }) => 
       post.data.selftext?.substring(0, 100)
     ).filter(Boolean)
   };
@@ -160,7 +169,7 @@ const getFallbackTrendingData = () => {
   const currentDay = new Date().getDay();
   
   // Time-based trending topics
-  let timeBasedTopics = [];
+  let timeBasedTopics: string[] = [];
   if (currentHour < 12) {
     timeBasedTopics = ['Morning productivity tips', 'Coffee culture trends', 'Early bird success stories'];
   } else if (currentHour < 17) {

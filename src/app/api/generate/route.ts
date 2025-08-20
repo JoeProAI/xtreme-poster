@@ -65,44 +65,45 @@ export async function POST(req: Request) {
         const relevantHashtags = trendingData.data.hashtags.slice(0, 5).join(', ');
         const relevantTopics = trendingData.data.topics.slice(0, 3).join(', ');
         trendingContext = `
-        TRENDING NOW (use these for maximum relevance):
-        - Hot hashtags: ${relevantHashtags}
-        - Trending topics: ${relevantTopics}
-        - Current events context: ${trendingData.data.currentEvents.slice(0, 2).join(', ')}
+CURRENT CONTEXT:
+Hashtags: ${relevantHashtags}
+Topics: ${relevantTopics}
+Events: ${trendingData.data.currentEvents.slice(0, 2).join(', ')}
         `;
       }
     } catch (error) {
       console.log('Could not fetch trending data, proceeding without it');
     }
 
-    // Enhanced prompt for viral X/Twitter content with trending context
-    const prompt = `
-      Generate a viral ${outputType} about "${topic}" optimized for maximum X/Twitter impressions.
-      Style: "${style}"
-      
-      ${trendingContext}
-      
-      Use viral techniques:
-      - Hook: ${archetype.hooks.join(', ')}
-      - Structure: ${archetype.structures.join(', ')}
-      - CTA: ${archetype.ctas.join(', ')}
-      
-      Make it EXTREMELY timely and on-point:
-      • Reference current trending topics when relevant
-      • Use trending hashtags naturally
-      • Connect to breaking news or viral moments
-      • Include real-time cultural references
-      • Make it feel like it was written TODAY
-      • Use emotional triggers and controversy
-      • Include numbers/statistics when possible
-      • Make it copy-paste ready for X/Twitter
-      • Use MINIMAL emoticons (max 1-2 per post)
-      • NEVER use dash characters (-)
-      • Keep formatting clean and professional
-      
-      The content should feel urgent, timely, and perfectly aligned with what's happening RIGHT NOW.
-      Format for easy copying to X/Twitter with clean, professional appearance.
-    `;
+    // Authentic content generation prompt focused on quality writing
+    const prompt = `You are a skilled writer who creates compelling social media content. Your voice is authentic, thoughtful, and naturally engaging without being pushy or salesy.
+
+${trendingContext}
+
+STYLE INSPIRATION: ${style}
+Writing elements: ${archetype.hooks.slice(0, 3).join(' | ')}
+Structure options: ${archetype.structures.slice(0, 2).join(' | ')}
+
+TOPIC: "${topic}"
+FORMAT: ${outputType}
+
+WRITING PRINCIPLES:
+1. Write with genuine voice - no marketing speak or hype
+2. Use concrete imagery and specific details over abstract concepts  
+3. Lead with curiosity, insight, or authentic observation
+4. Weave trending elements naturally into the narrative
+5. Choose precise words that carry weight and meaning
+6. Create moments of recognition or revelation for readers
+7. Build tension through pacing and word choice
+8. End with something that lingers in the mind
+9. Use minimal emojis (max 2) and replace dashes with bullets (•)
+10. Write like you're sharing something that genuinely matters to you
+
+For POSTS: Craft a single, memorable statement that captures attention through insight or observation
+For THREADS: Build a narrative arc that unfolds naturally across connected thoughts  
+For LONG-FORM: Develop ideas with depth, using vivid language and thoughtful progression
+
+Write content that feels real, sounds intelligent, and connects with people on a human level. Avoid buzzwords, excessive enthusiasm, or anything that sounds like it's trying to sell something.`;
 
     try {
       const completion = await openai.chat.completions.create({
@@ -116,29 +117,22 @@ export async function POST(req: Request) {
       // Generate image if requested using GPT Image
       if (includeImage) {
         try {
-          // Create detailed, unique image prompt
-          const imagePrompt = `Create a stunning, highly detailed visual artwork about "${topic}" in ${style} style. 
+          // Generate thoughtful image prompt that complements the content
+          const imagePrompt = `Create a compelling visual that enhances the message about "${topic}". 
 
-          Visual Elements:
-          • Ultra-realistic 8K quality with cinematic lighting
-          • Dynamic composition with rule of thirds
-          • Rich color palette with complementary contrasts
-          • Professional photography aesthetic with shallow depth of field
-          • Incorporate trending visual metaphors and symbols
-          • Modern, sleek design with premium feel
-          • Subtle texture overlays and atmospheric effects
-          • Perfect for social media engagement
+Visual approach:
+- Clean, sophisticated composition with purposeful elements
+- Natural lighting that feels authentic and inviting  
+- Thoughtful color palette that supports the mood
+- Clear focal point with balanced negative space
+- Professional quality without over-processing
+- Genuine aesthetic that feels human and relatable
+- Visual metaphors that add depth to the concept
+- Composition that draws the eye naturally
+- Subtle details that reward closer inspection
+- Timeless quality that won't feel dated quickly
 
-          Technical Specifications:
-          • Photorealistic rendering with HDR lighting
-          • Sharp focus on main subject with artistic bokeh background
-          • Vibrant but sophisticated color grading
-          • Clean, uncluttered composition
-          • High contrast and visual impact
-          • Professional studio lighting setup
-          • Trending aesthetic that stops scrolling
-
-          Make it visually striking, unique, and instantly shareable on X/Twitter.`;
+Create an image that people connect with emotionally and want to engage with because it genuinely adds value to the content.`;
 
           const imageResponse = await openai.responses.create({
             model: "gpt-4o",
@@ -153,13 +147,9 @@ export async function POST(req: Request) {
             ]
           });
 
-          const imageData = imageResponse.output?.find(
-            (output) => output.type === "image_generation_call"
-          );
-
+          const imageData = imageResponse.output?.find(output => output.type === "image_generation_call");
           if (imageData && 'result' in imageData) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            imageUrl = `data:image/png;base64,${(imageData as any).result}`;
+            imageUrl = `data:image/png;base64,${imageData.result}`;
           }
         } catch (imageError) {
           console.error('GPT Image generation error:', imageError);
