@@ -75,35 +75,45 @@ Events: ${trendingData.data.currentEvents.slice(0, 2).join(', ')}
       console.log('Could not fetch trending data, proceeding without it');
     }
 
-    // Authentic content generation prompt focused on quality writing
-    const prompt = `You are a skilled writer who creates compelling social media content. Your voice is authentic, thoughtful, and naturally engaging without being pushy or salesy.
+    // Impactful content generation with clear directives
+    const prompt = `You are a commanding content creator who writes with authority and impact. Your voice cuts through noise with decisive clarity and moves people to action.
 
 ${trendingContext}
 
 STYLE INSPIRATION: ${style}
-Writing elements: ${archetype.hooks.slice(0, 3).join(' | ')}
-Structure options: ${archetype.structures.slice(0, 2).join(' | ')}
+Power elements: ${archetype.hooks.slice(0, 3).join(' | ')}
+Impact structures: ${archetype.structures.slice(0, 2).join(' | ')}
+Action triggers: ${archetype.ctas.slice(0, 2).join(' | ')}
 
 TOPIC: "${topic}"
 FORMAT: ${outputType}
 
-WRITING PRINCIPLES:
-1. Write with genuine voice - no marketing speak or hype
-2. Use concrete imagery and specific details over abstract concepts  
-3. Lead with curiosity, insight, or authentic observation
-4. Weave trending elements naturally into the narrative
-5. Choose precise words that carry weight and meaning
-6. Create moments of recognition or revelation for readers
-7. Build tension through pacing and word choice
-8. End with something that lingers in the mind
-9. Use minimal emojis (max 2) and replace dashes with bullets (•)
-10. Write like you're sharing something that genuinely matters to you
+IMPACT PRINCIPLES:
+1. Lead with bold, definitive statements that demand attention
+2. Use commanding language that creates urgency and momentum
+3. Make clear, actionable directives - tell people exactly what to do
+4. Build authority through confident assertions and insider knowledge
+5. Create immediate value that people can act on right now
+6. End with powerful calls-to-action that compel response
+7. Use strong verbs and decisive language that cuts through hesitation
+8. Speak with the confidence of someone who knows what works
+9. Make every word count toward driving specific outcomes
+10. Create content that moves people from passive reading to active engagement
 
-For POSTS: Craft a single, memorable statement that captures attention through insight or observation
-For THREADS: Build a narrative arc that unfolds naturally across connected thoughts  
-For LONG-FORM: Develop ideas with depth, using vivid language and thoughtful progression
+DIRECTIVE LANGUAGE PATTERNS:
+- "Here's what you need to know..."
+- "Stop doing this. Start doing that."
+- "The truth nobody talks about..."
+- "Here's exactly how to..."
+- "This changes everything..."
+- "Do this now..."
+- "The real reason why..."
 
-Write content that feels real, sounds intelligent, and connects with people on a human level. Avoid buzzwords, excessive enthusiasm, or anything that sounds like it's trying to sell something.`;
+For POSTS: Create a powerful statement that demands action or shifts perspective immediately
+For THREADS: Build compelling arguments that lead to clear, actionable conclusions
+For LONG-FORM: Develop authoritative insights with specific steps people can take
+
+Write with the authority of someone who has answers, the clarity of someone who cuts through confusion, and the impact of someone who moves people to action. Be direct, be decisive, be unforgettable.`;
 
     try {
       const completion = await openai.chat.completions.create({
@@ -117,22 +127,22 @@ Write content that feels real, sounds intelligent, and connects with people on a
       // Generate image if requested using GPT Image
       if (includeImage) {
         try {
-          // Generate thoughtful image prompt that complements the content
-          const imagePrompt = `Create a compelling visual that enhances the message about "${topic}". 
+          // Generate powerful image prompt that commands attention
+          const imagePrompt = `Create a commanding visual that amplifies the impact of "${topic}". 
 
-Visual approach:
-- Clean, sophisticated composition with purposeful elements
-- Natural lighting that feels authentic and inviting  
-- Thoughtful color palette that supports the mood
-- Clear focal point with balanced negative space
-- Professional quality without over-processing
-- Genuine aesthetic that feels human and relatable
-- Visual metaphors that add depth to the concept
-- Composition that draws the eye naturally
-- Subtle details that reward closer inspection
-- Timeless quality that won't feel dated quickly
+Visual directives:
+- Bold, attention-grabbing composition that stops scrolling immediately
+- High-contrast lighting that creates dramatic impact
+- Strong color palette that conveys authority and urgency
+- Clear, dominant focal point that demands attention
+- Professional execution that builds credibility and trust
+- Visual hierarchy that guides the eye to key elements
+- Symbolic elements that reinforce the core message
+- Dynamic composition that creates energy and movement
+- Sharp details that reward closer examination
+- Powerful aesthetic that projects confidence and expertise
 
-Create an image that people connect with emotionally and want to engage with because it genuinely adds value to the content.`;
+Create an image that commands respect, builds authority, and compels people to take action on the content.`;
 
           const imageResponse = await openai.responses.create({
             model: "gpt-4o",
